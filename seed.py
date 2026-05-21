@@ -1,10 +1,9 @@
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
 import sqlite3
 import requests
 import time
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 DB = "music.db"
 
@@ -34,8 +33,8 @@ def zoek_artiest_id(naam):
     r = requests.get(
         "https://musicbrainz.org/ws/2/artist",
         params={"query": naam, "limit": 1, "fmt": "json"},
-        headers=HEADERS
-        verify=False   
+        headers=HEADERS,
+        verify=False
     )
     resultaten = r.json().get("artists", [])
     if resultaten:
@@ -48,8 +47,8 @@ def zoek_cover(release_group_id):
             f"https://coverartarchive.org/release-group/{release_group_id}/front",
             headers=HEADERS,
             allow_redirects=True,
-            timeout=5
-            verify=False   
+            timeout=5,
+            verify=False
         )
         if r.status_code == 200:
             return r.url
@@ -66,8 +65,8 @@ def zoek_tracklist(release_group_id):
                 "limit": 1,
                 "fmt": "json"
             },
-            headers=HEADERS
-            verify=False   
+            headers=HEADERS,
+            verify=False
         )
         releases = r.json().get("releases", [])
         if not releases:
@@ -79,8 +78,8 @@ def zoek_tracklist(release_group_id):
         r = requests.get(
             f"https://musicbrainz.org/ws/2/release/{release_id}",
             params={"inc": "recordings", "fmt": "json"},
-            headers=HEADERS
-            verify=False   
+            headers=HEADERS,
+            verify=False
         )
         data = r.json()
         tracks = []
@@ -125,7 +124,8 @@ def seed():
                 "limit": 5,
                 "fmt": "json"
             },
-            headers=HEADERS
+            headers=HEADERS,
+            verify=False
         )
 
         albums = r.json().get("release-groups", [])
@@ -166,7 +166,7 @@ def seed():
         time.sleep(1.2)
 
     con.close()
-    print("✅ Database gevuld!")
+    print("Ready")
 
 if __name__ == "__main__":
     seed()
