@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        {% if album.cover_url %}
+            <img src="{{ album.cover_url }}" class="img-fluid rounded shadow" alt="{{ album.title }}">
+        {% else %}
+            <div style="height: 350px; background-color: #ddd; display: flex; align-items: center; justify-content: center;" class="rounded">
+                <span class="text-muted">Geen cover</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-8">
+        <h2 class="fw-bold">{{ album.title }}</h2>
+        <p class="text-muted fs-5">{{ album.artist }}</p>
+        <p class="text-muted">{{ album.year }}</p>
+        <p class="text-muted">Genre: {{ album.genre }}</p>
+        <p class="text-muted">Formaat: {{ album.type }}</p>
+        <p class="fw-bold fs-4">€{{ "%.2f"|format(album.price) }}</p>
+
+        <div class="d-flex gap-3 mt-4">
+            <a href="/wishlist/add/{{ album.id }}" class="btn btn-outline-danger">Toevoegen aan Wishlist</a>
+            <a href="/cart/add/{{ album.id }}" class="btn btn-dark">Toevoegen aan Winkelwagen</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
