@@ -1,10 +1,6 @@
-from flask import render_template, redirect, flash
-from flask import session
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import request
-
-from seed import HEADERS
+from flask import render_template, redirect, flash, request, session
 from flask import Flask
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 
 app = Flask(__name__)
@@ -74,32 +70,9 @@ def index():
 def album(album_id):
     con = get_db()
     album = con.execute("SELECT * FROM albums WHERE id = ?", (album_id,)).fetchone()
+    tracks = con.execute("SELECT * FROM tracks WHERE album_id = ? ORDER BY position", (album_id,)).fetchall()
     con.close()
-    return render_template("album.html", album=album)
-
-if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
-
-def zoek_albums_op_genre(genre):
-    url = "https://musicbrainz.org/ws/2/release-group/"
-    params = {
-        "query": f"tag:{genre}",
-        "fmt": "json"
-    }
-    r = request.get(url, params=params, headers=HEADERS)
-    data = r.json()
-
-    albums = []
-    for item in data.get("release-groups", [])[:12]:  # eerste 12 resultaten
-        albums.append({
-            "title": item["title"],
-            "artist": item["artist-credit"][0]["name"],
-            "mbid": item["id"],
-            "cover": f"https://coverartarchive.org/release-group/{item['id']}/front"
-        })
-
-    return albums
+    return render_template("album.html", album=album, tracks=tracks)
 
 @app.route("/genre/<genre>")
 def genre_pagina(genre):
@@ -108,22 +81,9 @@ def genre_pagina(genre):
         "SELECT * FROM albums WHERE genre = ? ORDER BY popularity DESC",
         (genre,)
     ).fetchall()
-
+    con.close()
     return render_template("genre.html", genre=genre, albums=albums)
 
-@app.route("/wishlist/add/<int:album_id>")
-def wishlist_add(album_id):
-    con = get_db()
-
-    # voorkomt dubbele items
-    con.execute(
-        "INSERT OR IGNORE INTO wishlist (user_id, album_id) VALUES (?, ?)",
-        (1, album_id)
-    )
-    con.commit()
-
-    flash("Album toegevoegd aan je wishlist!", "success")
-    return redirect(request.referrer or "/") # type: ignore
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -131,8 +91,13 @@ def register():
         password = generate_password_hash(request.form["password"])
         try:
             con = get_db()
-            con.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            con.execute(
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (username, password)
+            )
             con.commit()
+            con.close()
+            flash("Account aangemaakt! Je kan nu inloggen.", "success")
             return redirect("/login")
         except:
             flash("Gebruikersnaam al in gebruik.", "danger")
@@ -144,9 +109,15 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
         con = get_db()
-        user = con.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        user = con.execute(
+            "SELECT * FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
+        con.close()
         if user and check_password_hash(user["password"], password):
             session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            flash(f"Welkom terug, {username}!", "success")
             return redirect("/")
         flash("Verkeerde gebruikersnaam of wachtwoord.", "danger")
     return render_template("login.html")
@@ -166,4 +137,78 @@ def wishlist():
         JOIN wishlist ON albums.id = wishlist.album_id
         WHERE wishlist.user_id = ?
     """, (session["user_id"],)).fetchall()
+    con.close()
     return render_template("wishlist.html", albums=albums)
+
+@app.route("/wishlist/add/<int:album_id>")
+def wishlist_add(album_id):
+    if "user_id" not in session:
+        return redirect("/login")
+    con = get_db()
+    con.execute(
+        "INSERT OR IGNORE INTO wishlist (user_id, album_id) VALUES (?, ?)",
+        (session["user_id"], album_id)
+    )
+    con.commit()
+    con.close()
+    flash("Album toegevoegd aan je wishlist!", "success")
+    return redirect(request.referrer or "/")
+
+@app.route("/wishlist/remove/<int:album_id>")
+def wishlist_remove(album_id):
+    if "user_id" not in session:
+        return redirect("/login")
+    con = get_db()
+    con.execute(
+        "DELETE FROM wishlist WHERE user_id = ? AND album_id = ?",
+        (session["user_id"], album_id)
+    )
+    con.commit()
+    con.close()
+    flash("Album verwijderd uit je wishlist.", "success")
+    return redirect("/wishlist")
+
+@app.route("/cart")
+def cart():
+    if "user_id" not in session:
+        return redirect("/login")
+    con = get_db()
+    items = con.execute("""
+        SELECT albums.*, cart.quantity FROM albums
+        JOIN cart ON albums.id = cart.album_id
+        WHERE cart.user_id = ?
+    """, (session["user_id"],)).fetchall()
+    con.close()
+    return render_template("cart.html", items=items)
+
+@app.route("/cart/add/<int:album_id>")
+def cart_add(album_id):
+    if "user_id" not in session:
+        return redirect("/login")
+    con = get_db()
+    con.execute(
+        "INSERT OR IGNORE INTO cart (user_id, album_id) VALUES (?, ?)",
+        (session["user_id"], album_id)
+    )
+    con.commit()
+    con.close()
+    flash("Album toegevoegd aan je winkelwagen!", "success")
+    return redirect(request.referrer or "/")
+
+@app.route("/cart/remove/<int:album_id>")
+def cart_remove(album_id):
+    if "user_id" not in session:
+        return redirect("/login")
+    con = get_db()
+    con.execute(
+        "DELETE FROM cart WHERE user_id = ? AND album_id = ?",
+        (session["user_id"], album_id)
+    )
+    con.commit()
+    con.close()
+    flash("Album verwijderd uit je winkelwagen.", "success")
+    return redirect("/cart")
+
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True)

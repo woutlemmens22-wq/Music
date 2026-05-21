@@ -44,10 +44,8 @@
 <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid px-5 d-flex justify-content-between align-items-center">
 
-        <!-- Logo links -->
         <a class="navbar-brand" href="/">MyMusic</a>
 
-        <!-- Midden: Genres, Wishlist, Winkelwagen -->
         <div class="d-flex gap-5 align-items-center">
             <div class="dropdown">
                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -69,7 +67,6 @@
             <a class="nav-link" href="/cart">Winkelwagen</a>
         </div>
 
-        <!-- Rechts: Login -->
         {% if session.username %}
             <div class="dropdown">
                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
