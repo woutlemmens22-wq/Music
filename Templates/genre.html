@@ -14,8 +14,7 @@
             <div class="card h-100 shadow-sm">
 
                 {% if album.cover_url %}
-                    <img src="{{ album.cover_url }}" class="card-img-top" alt="{{ album.title }}" 
-                         style="height: 280px; object-fit: cover;">
+                    <img src="{{ album.cover_url }}" class="card-img-top" alt="{{ album.title }}" style="height: 280px; object-fit: cover;" onerror="this.src='https://placehold.co/300x280?text=Geen+Cover'">
                 {% else %}
                     <div style="height: 280px; background-color: #ddd; display: flex; align-items: center; justify-content: center;">
                         <span class="text-muted small">Geen cover</span>

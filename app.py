@@ -212,3 +212,14 @@ def cart_remove(album_id):
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
+
+@app.route("/zoek")
+def zoek():
+    q = request.args.get("q", "")
+    con = get_db()
+    albums = con.execute(
+        "SELECT * FROM albums WHERE title LIKE ? OR artist LIKE ? ORDER BY popularity DESC",
+        (f"%{q}%", f"%{q}%")
+    ).fetchall()
+    con.close()
+    return render_template("zoek.html", albums=albums, q=q)

@@ -2,11 +2,11 @@
 
 {% block content %}
 
-<div class="py-4 mb-4 border-bottom text-center">
-    <h2 class="fw-bold">Beste Albums Aller Tijden</h2>
-    <p class="text-muted">De best verkochte albums van alle tijden!</p>
+<div class="py-4 mb-4 border-bottom">
+    <h2 class="fw-bold">Zoekresultaten voor "{{ q }}"</h2>
 </div>
 
+{% if albums %}
 <div class="row g-3">
     {% for album in albums %}
     <div class="col-6 col-md-3">
@@ -34,5 +34,12 @@
     </div>
     {% endfor %}
 </div>
+
+{% else %}
+<div class="text-center mt-5">
+    <p class="text-muted fs-5">Geen albums gevonden voor "{{ q }}".</p>
+    <a href="/" class="btn btn-dark mt-2">Terug naar home</a>
+</div>
+{% endif %}
 
 {% endblock %}
