@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="py-4 mb-4 border-bottom">
+    <h2 class="fw-bold">Afrekenen</h2>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-md-7">
+        <h5 class="fw-bold mb-3">Leveringsadres</h5>
+        <form method="POST">
+            <div class="row mb-3">
+                <div class="col">
+                    <label class="form-label">Voornaam *</label>
+                    <input type="text" name="voornaam" class="form-control" required>
+                </div>
+                <div class="col">
+                    <label class="form-label">Achternaam *</label>
+                    <input type="text" name="achternaam" class="form-control" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label class="form-label">Straat *</label>
+                    <input type="text" name="straat" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Huisnummer *</label>
+                    <input type="text" name="huisnummer" class="form-control" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Postcode *</label>
+                    <input type="text" name="postcode" class="form-control" required>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Stad *</label>
+                    <input type="text" name="stad" class="form-control" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Land</label>
+                <select name="land" class="form-select">
+                    <option value="België" selected>België</option>
+                    <option value="Nederland">Nederland</option>
+                    <option value="Luxemburg">Luxemburg</option>
+                    <option value="Duitsland">Duitsland</option>
+                    <option value="Frankrijk">Frankrijk</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-dark btn-lg w-100 mt-2">Bestelling bevestigen</button>
+        </form>
+    </div>
+
+    <div class="col-md-5">
+        <h5 class="fw-bold mb-3">Jouw bestelling</h5>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {% for item in items %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if item.cover_url %}
+                            <img src="{{ item.cover_url }}" style="height: 40px; width: 40px; object-fit: cover;" onerror="this.src='https://placehold.co/40x40?text=?'">
+                        {% endif %}
+                        <div>
+                            <p class="mb-0 fw-bold" style="font-size: 0.85rem;">{{ item.title }}</p>
+                            <p class="mb-0 text-muted" style="font-size: 0.75rem;">{{ item.artist }}</p>
+                        </div>
+                    </div>
+                    <span class="fw-bold">€{{ "%.2f"|format(item.price) }}</span>
+                </div>
+                {% endfor %}
+                <hr>
+                <div class="d-flex justify-content-between fw-bold fs-5">
+                    <span>Totaal</span>
+                    <span>€{{ "%.2f"|format(items|sum(attribute='price')) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

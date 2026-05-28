@@ -62,7 +62,12 @@ def init_db():
 @app.route("/")
 def index():
     con = get_db()
-    albums = con.execute("SELECT * FROM albums WHERE cover_url IS NOT NULL ORDER BY popularity DESC LIMIT 50").fetchall()
+    albums = con.execute("""
+        SELECT * FROM albums 
+        ORDER BY 
+            CASE WHEN cover_url IS NOT NULL THEN 0 ELSE 1 END,
+            popularity DESC
+    """).fetchall()
     con.close()
     return render_template("index.html", albums=albums)
 
@@ -77,10 +82,13 @@ def album(album_id):
 @app.route("/genre/<genre>")
 def genre_pagina(genre):
     con = get_db()
-    albums = con.execute(
-        "SELECT * FROM albums WHERE genre = ? ORDER BY popularity DESC",
-        (genre,)
-    ).fetchall()
+    albums = con.execute("""
+        SELECT * FROM albums 
+        WHERE genre = ?
+        ORDER BY 
+            CASE WHEN cover_url IS NOT NULL THEN 0 ELSE 1 END,
+            popularity DESC
+    """, (genre,)).fetchall()
     con.close()
     return render_template("genre.html", genre=genre, albums=albums)
 
@@ -223,3 +231,32 @@ def zoek():
     ).fetchall()
     con.close()
     return render_template("zoek.html", albums=albums, q=q)
+
+@app.route("/checkout", methods=["GET", "POST"])
+def checkout():
+    if "user_id" not in session:
+        return redirect("/login")
+    con = get_db()
+    items = con.execute("""
+        SELECT albums.*, cart.quantity FROM albums
+        JOIN cart ON albums.id = cart.album_id
+        WHERE cart.user_id = ?
+    """, (session["user_id"],)).fetchall()
+    if request.method == "POST":
+        voornaam = request.form["voornaam"]
+        achternaam = request.form["achternaam"]
+        straat = request.form["straat"]
+        huisnummer = request.form["huisnummer"]
+        postcode = request.form["postcode"]
+        stad = request.form["stad"]
+        if not voornaam or not achternaam or not straat or not huisnummer or not postcode or not stad:
+            flash("Vul alle velden in.", "danger")
+            return render_template("checkout.html", items=items)
+        con.execute("DELETE FROM cart WHERE user_id = ?", (session["user_id"],))
+        con.commit()
+        con.close()
+        session["cart_count"] = 0
+        flash(f"Bestelling geplaatst! Je pakket wordt verstuurd naar {straat} {huisnummer}, {postcode} {stad}.", "success")
+        return redirect("/")
+    con.close()
+    return render_template("checkout.html", items=items)

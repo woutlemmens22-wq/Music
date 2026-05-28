@@ -9,26 +9,27 @@ HEADERS = {
 }
 
 ARTIESTEN = [
-    ("The Beatles", "Rock"),
-    ("Kendrick Lamar", "Hip-Hop"),
-    ("Radiohead", "Rock"),
-    ("Daft Punk", "Electronic"),
-    ("Amy Winehouse", "Jazz"),
-    ("Arctic Monkeys", "Rock"),
-    ("Michael Jackson", "Pop"),
-    ("Miles Davis", "Jazz"),
-    ("Eminem", "Hip-Hop"),
-    ("Pink Floyd", "Rock"),
-    ("Taylor Swift", "Pop"),
-    ("Drake", "Hip-Hop"),
-    ("Metallica", "Metal"),
-    ("Nirvana", "Rock"),
-    ("Queen", "Rock"),
-    ("Billie Eilish", "Pop"),
-    ("SZA", "RnB"),
-    ("Mozart", "Classical"),
-    ("Aphex Twin", "Electronic"),
-    ("John Coltrane", "Jazz")
+("Stevie Wonder", "Soul"),
+("Lana Del Rey", "Pop"),
+("The Weeknd", "RnB"),
+("Tame Impala", "Indie"),
+("Kanye West", "Hip-Hop"),
+("Adele", "Pop"),
+("Coldplay", "Rock"),
+("Herbie Hancock", "Jazz"),
+("Björk", "Electronic"),
+("Bruce Springsteen", "Rock"),
+("Frank Ocean", "RnB"),
+("Rage Against the Machine", "Rock"),
+("Dua Lipa", "Pop"),
+("J. Cole", "Hip-Hop"),
+("Chopin", "Classical"),
+("Boards of Canada", "Electronic"),
+("Ella Fitzgerald", "Jazz"),
+("Fleetwood Mac", "Rock"),
+("The Cure", "Rock"),
+("Rosalía", "Pop"),
+
 ]
 
 def get_db():
@@ -131,8 +132,6 @@ def seed():
 
     con = get_db()
 
-    con.execute("DELETE FROM tracks")
-    con.execute("DELETE FROM albums")
     con.commit()
 
     for artiest, genre in ARTIESTEN:
@@ -174,7 +173,7 @@ def seed():
             print(f"  ➜ {titel}")
 
             cur = con.execute("""
-                INSERT INTO albums
+                INSERT OR IGNORE INTO albums
                 (title, artist, genre, year, price, type, cover_url, popularity)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (
