@@ -62,7 +62,7 @@ def init_db():
 @app.route("/")
 def index():
     con = get_db()
-    albums = con.execute("SELECT * FROM albums WHERE cover_url IS NOT NULL ORDER BY popularity DESC").fetchall()
+    albums = con.execute("SELECT * FROM albums WHERE cover_url IS NOT NULL ORDER BY popularity DESC LIMIT 50").fetchall()
     con.close()
     return render_template("index.html", albums=albums)
 
