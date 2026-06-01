@@ -9,26 +9,12 @@ HEADERS = {
 }
 
 ARTIESTEN = [
-("Stevie Wonder", "Soul"),
-("Lana Del Rey", "Pop"),
-("The Weeknd", "RnB"),
-("Tame Impala", "Indie"),
-("Kanye West", "Hip-Hop"),
-("Adele", "Pop"),
-("Coldplay", "Rock"),
-("Herbie Hancock", "Jazz"),
-("Björk", "Electronic"),
-("Bruce Springsteen", "Rock"),
-("Frank Ocean", "RnB"),
-("Rage Against the Machine", "Rock"),
-("Dua Lipa", "Pop"),
-("J. Cole", "Hip-Hop"),
-("Chopin", "Classical"),
-("Boards of Canada", "Electronic"),
-("Ella Fitzgerald", "Jazz"),
-("Fleetwood Mac", "Rock"),
-("The Cure", "Rock"),
-("Rosalía", "Pop"),
+("Michael Jackson", "Pop"),
+("The Jackson 5", "Pop"),
+
+
+
+
 
 ]
 
@@ -149,7 +135,7 @@ def seed():
             {
                 "artist": artiest_id,
                 "type": "album",
-                "limit": 5,
+                "limit": 10,
                 "fmt": "json"
             }
         )
@@ -193,7 +179,7 @@ def seed():
 
             for positie, naam, duur in tracks:
                 con.execute("""
-                    INSERT INTO tracks
+                    INSERT OR IGNORE INTO tracks
                     (album_id, position, title, duration)
                     VALUES (?, ?, ?, ?)
                 """, (

@@ -5,7 +5,7 @@
 <div class="row mt-4">
     <div class="col-md-4">
         {% if album.cover_url %}
-            <img src="{{ album.cover_url }}" class="img-fluid rounded shadow" alt="{{ album.title }}">
+            <img src="{{ album.cover_url }}" class="img-fluid rounded shadow" alt="{{ album.title }}" onerror="this.src='https://placehold.co/300x300?text=Geen+Cover'">
         {% else %}
             <div style="height: 350px; background-color: #ddd; display: flex; align-items: center; justify-content: center;" class="rounded">
                 <span class="text-muted">Geen cover</span>
@@ -27,5 +27,31 @@
         </div>
     </div>
 </div>
+
+{% if tracks %}
+<div class="mt-5">
+    <h4 class="fw-bold mb-3">Tracklist</h4>
+    <table class="table table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th style="width: 50px;">#</th>
+                <th>Titel</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for track in tracks %}
+            <tr>
+                <td class="text-muted">{{ track.position }}</td>
+                <td>{{ track.title }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="mt-5">
+    <p class="text-muted">Geen tracklist beschikbaar voor dit album.</p>
+</div>
+{% endif %}
 
 {% endblock %}
