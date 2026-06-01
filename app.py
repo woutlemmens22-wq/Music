@@ -125,6 +125,7 @@ def login():
         if user and check_password_hash(user["password"], password):
             session["user_id"] = user["id"]
             session["username"] = user["username"]
+            session["is_admin"] = user["is_admin"]
             flash(f"Welkom terug, {username}!", "success")
             return redirect("/")
         flash("Verkeerde gebruikersnaam of wachtwoord.", "danger")
@@ -249,9 +250,17 @@ def checkout():
         huisnummer = request.form["huisnummer"]
         postcode = request.form["postcode"]
         stad = request.form["stad"]
+        land = request.form["land"]
         if not voornaam or not achternaam or not straat or not huisnummer or not postcode or not stad:
             flash("Vul alle velden in.", "danger")
             return render_template("checkout.html", items=items)
+        totaal = sum(item["price"] for item in items)
+        from datetime import datetime
+        datum = datetime.now().strftime("%d/%m/%Y %H:%M")
+        con.execute("""
+            INSERT INTO orders (user_id, username, voornaam, achternaam, straat, huisnummer, postcode, stad, land, totaal, datum)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (session["user_id"], session["username"], voornaam, achternaam, straat, huisnummer, postcode, stad, land, totaal, datum))
         con.execute("DELETE FROM cart WHERE user_id = ?", (session["user_id"],))
         con.commit()
         con.close()
@@ -260,3 +269,23 @@ def checkout():
         return redirect("/")
     con.close()
     return render_template("checkout.html", items=items)
+
+@app.route("/admin/orders")
+def admin_orders():
+    if "user_id" not in session or not session.get("is_admin"):
+        return redirect("/")
+    con = get_db()
+    orders = con.execute("SELECT * FROM orders ORDER BY id DESC").fetchall()
+    con.close()
+    return render_template("admin_orders.html", orders=orders)
+
+@app.route("/admin/orders/delete/<int:order_id>")
+def admin_orders_delete(order_id):
+    if "user_id" not in session or not session.get("is_admin"):
+        return redirect("/")
+    con = get_db()
+    con.execute("DELETE FROM orders WHERE id = ?", (order_id,))
+    con.commit()
+    con.close()
+    flash("Bestelling verwijderd.", "success")
+    return redirect("/admin/orders")
