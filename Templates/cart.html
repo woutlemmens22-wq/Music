@@ -14,18 +14,23 @@
             <div class="row g-0 align-items-center">
                 <div class="col-md-1">
                     {% if item.cover_url %}
-                        <img src="{{ item.cover_url }}" class="img-fluid rounded-start" alt="{{ item.title }}" style="height: 80px; object-fit: cover;" onerror="this.src='https://placehold.co/80x80?text=Geen+Cover'">
+                        <img src="{{ item.cover_url }}" class="img-fluid rounded-start" alt="{{ item.title }}" style="height: 80px; object-fit: cover;" onerror="this.src='https://placehold.co/80x80?text=?'">
                     {% endif %}
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-7">
                     <div class="card-body">
                         <h5 class="card-title fw-bold mb-1">{{ item.title }}</h5>
                         <p class="card-text text-muted mb-0">{{ item.artist }}</p>
                         <p class="card-text text-muted" style="font-size: 0.85rem;">{{ item.genre }} — {{ item.year }}</p>
                     </div>
                 </div>
-                <div class="col-md-3 text-end pe-4">
-                    <p class="fw-bold fs-5 mb-2">€{{ "%.2f"|format(item.price) }}</p>
+                <div class="col-md-4 text-end pe-4">
+                    <p class="fw-bold fs-5 mb-2">€{{ "%.2f"|format(item.price * item.quantity) }}</p>
+                    <form method="POST" action="/cart/update/{{ item.id }}" class="d-flex align-items-center justify-content-end gap-2 mb-2">
+                        <label class="text-muted" style="font-size: 0.85rem;">Aantal:</label>
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="99" class="form-control" style="width: 70px;">
+                        <button type="submit" class="btn btn-outline-dark btn-sm">OK</button>
+                    </form>
                     <a href="/cart/remove/{{ item.id }}" class="btn btn-outline-danger btn-sm">Verwijderen</a>
                 </div>
             </div>
@@ -35,7 +40,7 @@
 </div>
 
 <div class="mt-4 text-end">
-    <h4 class="fw-bold">Totaal: €{{ "%.2f"|format(items|sum(attribute='price')) }}</h4>
+    <h4 class="fw-bold">Totaal: €{{ "%.2f"|format(totaal) }}</h4>
     <a href="/checkout" class="btn btn-dark btn-lg mt-2">Afrekenen</a>
 </div>
 

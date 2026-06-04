@@ -55,6 +55,21 @@ def init_db():
             FOREIGN KEY(user_id) REFERENCES users(id),
             FOREIGN KEY(album_id) REFERENCES albums(id)
         );
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            username TEXT,
+            voornaam TEXT,
+            achternaam TEXT,
+            straat TEXT,
+            huisnummer TEXT,
+            postcode TEXT,
+            stad TEXT,
+            land TEXT,
+            totaal REAL,
+            datum TEXT,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        );
     """)
     con.commit()
     con.close()
@@ -188,7 +203,9 @@ def cart():
         WHERE cart.user_id = ?
     """, (session["user_id"],)).fetchall()
     con.close()
-    return render_template("cart.html", items=items)
+    totaal = sum(item["price"] * item["quantity"] for item in items)
+    session["cart_count"] = sum(item["quantity"] for item in items)
+    return render_template("cart.html", items=items, totaal=totaal)
 
 @app.route("/cart/add/<int:album_id>")
 def cart_add(album_id):
@@ -200,9 +217,37 @@ def cart_add(album_id):
         (session["user_id"], album_id)
     )
     con.commit()
+    count = con.execute(
+        "SELECT SUM(quantity) FROM cart WHERE user_id = ?",
+        (session["user_id"],)
+    ).fetchone()[0]
     con.close()
+    session["cart_count"] = count or 0
     flash("Album toegevoegd aan je winkelwagen!", "success")
     return redirect(request.referrer or "/")
+
+@app.route("/cart/update/<int:album_id>", methods=["POST"])
+def cart_update(album_id):
+    if "user_id" not in session:
+        return redirect("/login")
+    quantity = int(request.form["quantity"])
+    if quantity < 1:
+        quantity = 1
+    if quantity > 99:
+        quantity = 99
+    con = get_db()
+    con.execute(
+        "UPDATE cart SET quantity = ? WHERE user_id = ? AND album_id = ?",
+        (quantity, session["user_id"], album_id)
+    )
+    con.commit()
+    count = con.execute(
+        "SELECT SUM(quantity) FROM cart WHERE user_id = ?",
+        (session["user_id"],)
+    ).fetchone()[0]
+    con.close()
+    session["cart_count"] = count or 0
+    return redirect("/cart")
 
 @app.route("/cart/remove/<int:album_id>")
 def cart_remove(album_id):
@@ -214,20 +259,21 @@ def cart_remove(album_id):
         (session["user_id"], album_id)
     )
     con.commit()
+    count = con.execute(
+        "SELECT SUM(quantity) FROM cart WHERE user_id = ?",
+        (session["user_id"],)
+    ).fetchone()[0]
     con.close()
+    session["cart_count"] = count or 0
     flash("Album verwijderd uit je winkelwagen.", "success")
     return redirect("/cart")
-
-if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
 
 @app.route("/zoek")
 def zoek():
     q = request.args.get("q", "")
     con = get_db()
     albums = con.execute(
-        "SELECT * FROM albums WHERE title LIKE ? OR artist LIKE ? ORDER BY popularity DESC",
+        "SELECT * FROM albums WHERE LOWER(title) LIKE LOWER(?) OR LOWER(artist) LIKE LOWER(?) ORDER BY popularity DESC",
         (f"%{q}%", f"%{q}%")
     ).fetchall()
     con.close()
@@ -254,7 +300,7 @@ def checkout():
         if not voornaam or not achternaam or not straat or not huisnummer or not postcode or not stad:
             flash("Vul alle velden in.", "danger")
             return render_template("checkout.html", items=items)
-        totaal = sum(item["price"] for item in items)
+        totaal = sum(item["price"] * item["quantity"] for item in items)
         from datetime import datetime
         datum = datetime.now().strftime("%d/%m/%Y %H:%M")
         con.execute("""
@@ -268,7 +314,8 @@ def checkout():
         flash(f"Bestelling geplaatst! Je pakket wordt verstuurd naar {straat} {huisnummer}, {postcode} {stad}.", "success")
         return redirect("/")
     con.close()
-    return render_template("checkout.html", items=items)
+    totaal = sum(item["price"] * item["quantity"] for item in items)
+    return render_template("checkout.html", items=items, totaal=totaal)
 
 @app.route("/admin/orders")
 def admin_orders():
@@ -289,3 +336,33 @@ def admin_orders_delete(order_id):
     con.close()
     flash("Bestelling verwijderd.", "success")
     return redirect("/admin/orders")
+
+@app.route("/admin/orders/add", methods=["GET", "POST"])
+def admin_orders_add():
+    if "user_id" not in session or not session.get("is_admin"):
+        return redirect("/")
+    if request.method == "POST":
+        from datetime import datetime
+        voornaam = request.form["voornaam"]
+        achternaam = request.form["achternaam"]
+        straat = request.form["straat"]
+        huisnummer = request.form["huisnummer"]
+        postcode = request.form["postcode"]
+        stad = request.form["stad"]
+        land = request.form["land"]
+        totaal = request.form["totaal"]
+        datum = datetime.now().strftime("%d/%m/%Y %H:%M")
+        con = get_db()
+        con.execute("""
+            INSERT INTO orders (user_id, username, voornaam, achternaam, straat, huisnummer, postcode, stad, land, totaal, datum)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (session["user_id"], session["username"], voornaam, achternaam, straat, huisnummer, postcode, stad, land, totaal, datum))
+        con.commit()
+        con.close()
+        flash("Bestelling toegevoegd!", "success")
+        return redirect("/admin/orders")
+    return render_template("admin_orders_add.html")
+
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True)
