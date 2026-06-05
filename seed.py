@@ -9,8 +9,8 @@ HEADERS = {
 }
 
 ARTIESTEN = [
-("Michael Jackson", "Pop"),
-("The Jackson 5", "Pop"),
+("Radiohead", "Rock"),
+("Joey Badass", "Hip-Hop"),
 
 
 
