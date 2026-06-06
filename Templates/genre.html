@@ -9,7 +9,7 @@
 
 <div class="row g-3">
     {% for album in albums %}
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md-3" id="album-{{ album.id }}">
         <a href="/album/{{ album.id }}" class="text-decoration-none text-dark">
             <div class="card h-100 shadow-sm">
 

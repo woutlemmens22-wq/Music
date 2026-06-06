@@ -176,7 +176,10 @@ def wishlist_add(album_id):
     con.commit()
     con.close()
     flash("Album toegevoegd aan je wishlist!", "success")
-    return redirect(request.referrer or "/")
+    referrer = request.referrer
+    if referrer:
+        return redirect(referrer + "#album-" + str(album_id))
+    return redirect("/")
 
 @app.route("/wishlist/remove/<int:album_id>")
 def wishlist_remove(album_id):
@@ -289,6 +292,9 @@ def checkout():
         JOIN cart ON albums.id = cart.album_id
         WHERE cart.user_id = ?
     """, (session["user_id"],)).fetchall()
+    if not items:
+        flash("Je winkelwagen is leeg!", "danger")
+        return redirect("/cart")
     if request.method == "POST":
         voornaam = request.form["voornaam"]
         achternaam = request.form["achternaam"]
