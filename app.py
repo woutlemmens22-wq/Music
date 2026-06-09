@@ -122,7 +122,7 @@ def register():
             con.close()
             flash("Account aangemaakt! Je kan nu inloggen.", "success")
             return redirect("/login")
-        except:
+        except Exception:
             flash("Gebruikersnaam al in gebruik.", "danger")
     return render_template("register.html")
 
@@ -342,32 +342,6 @@ def admin_orders_delete(order_id):
     con.close()
     flash("Bestelling verwijderd.", "success")
     return redirect("/admin/orders")
-
-@app.route("/admin/orders/add", methods=["GET", "POST"])
-def admin_orders_add():
-    if "user_id" not in session or not session.get("is_admin"):
-        return redirect("/")
-    if request.method == "POST":
-        from datetime import datetime
-        voornaam = request.form["voornaam"]
-        achternaam = request.form["achternaam"]
-        straat = request.form["straat"]
-        huisnummer = request.form["huisnummer"]
-        postcode = request.form["postcode"]
-        stad = request.form["stad"]
-        land = request.form["land"]
-        totaal = request.form["totaal"]
-        datum = datetime.now().strftime("%d/%m/%Y %H:%M")
-        con = get_db()
-        con.execute("""
-            INSERT INTO orders (user_id, username, voornaam, achternaam, straat, huisnummer, postcode, stad, land, totaal, datum)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (session["user_id"], session["username"], voornaam, achternaam, straat, huisnummer, postcode, stad, land, totaal, datum))
-        con.commit()
-        con.close()
-        flash("Bestelling toegevoegd!", "success")
-        return redirect("/admin/orders")
-    return render_template("admin_orders_add.html")
 
 if __name__ == "__main__":
     init_db()

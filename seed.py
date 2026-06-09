@@ -63,7 +63,7 @@ def zoek_cover(release_group_id):
 
         return r.url if r.status_code == 200 else None
 
-    except:
+    except Exception:
         return None
 
 def zoek_tracks(release_group_id):
