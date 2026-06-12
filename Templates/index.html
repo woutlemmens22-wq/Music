@@ -13,10 +13,10 @@
         <a href="/album/{{ album.id }}" class="text-decoration-none text-dark">
             <div class="card h-100 shadow-sm">
                 {% if album.cover_url %}
-                    <img src="{{ album.cover_url }}" class="card-img-top" alt="{{ album.title }}" style="height: 280px; object-fit: cover;" onerror="this.src='https://placehold.co/300x280?text=Geen+Cover'">
+                    <img src="{{ album.cover_url }}" class="card-img-top" alt="{{ album.title }}" style="height: 315px; object-fit: cover;" onerror="this.src='https://placehold.co/300x280?text=Geen+Cover'">
                 {% else %}
-                    <div style="height: 280px; background-color: #ddd; display: flex; align-items: center; justify-content: center;">
-                        <span class="text-muted small">Geen cover</span>
+                    <div style="height: 315px; background-color: #ddd; display: flex; align-items: center; justify-content: center;">
+                        <span class="text-muted small">Cover niet gevonden</span>
                     </div>
                 {% endif %}
                 <div class="card-body p-2">
@@ -24,6 +24,7 @@
                     <p class="card-text text-muted" style="font-size: 0.9rem;">{{ album.artist }}</p>
                     <p class="card-text text-muted" style="font-size: 0.75rem;">{{ album.year }}</p>
                     <p class="card-text fw-bold" style="font-size: 0.8rem;">€{{ "%.2f"|format(album.price) }}</p>
+
                 </div>
                 <div class="card-footer d-flex gap-1 p-2">
                     <a href="/wishlist/add/{{ album.id }}" class="btn btn-outline-danger btn-sm w-50" style="font-size: 0.75rem;" onclick="event.stopPropagation();">Wishlist</a>

@@ -9,13 +9,8 @@ HEADERS = {
 }
 
 ARTIESTEN = [
-("Radiohead", "Rock"),
-("Joey Badass", "Hip-Hop"),
-
-
-
-
-
+    ("Linkin Park", "Rock"),
+    
 ]
 
 def get_db():
@@ -135,7 +130,7 @@ def seed():
             {
                 "artist": artiest_id,
                 "type": "album",
-                "limit": 10,
+                "limit": 5,
                 "fmt": "json"
             }
         )
